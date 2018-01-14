@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound
 import json
 import numpy
+import ast 
 
 json_data = """{
     "function":"sample-text-function",
@@ -97,18 +98,18 @@ json_data = """{
     ]
 }"""
 
-bot_answer=""""""
+bot_answer="""[{}]"""
 format_data = {}
 first_name = ""
 last_name = ""
 full_name = ""
 row = []
-def bot_question(request, id):
+def bot_question(request, id=1):
    
     json_dict = json.loads(json_data)
     questions = json_dict.get("questions")
     
-    if int(id) > len(questions):
+    if int(id) >= len(questions):
         return HttpResponseNotFound("Not Found")
     
 #    for question in questions:
@@ -126,15 +127,18 @@ def bot_question(request, id):
         
     
 def answer_bot(request, id):
+    data = {}
     json_dict = json.loads(json_data)
     questions = json_dict.get("questions")
-    if int(id) > len(questions):
+    if int(id) >= len(questions):
         return HttpResponseNotFound("Not Found")
     
     if request.method == "POST":
-        question = questions[int(id)]
+        question = questions[int(id)].get('text')
+        if(question == None):
+            question = questions[int(id)].get('instruction')
         answer = request.POST['answer']
-        data = ({"stage"+ str(id) :{
+        data = {"stage"+ str(id) :{
     "Bot Says": [
       {
         "message": {
@@ -144,11 +148,11 @@ def answer_bot(request, id):
       }
     ],
     "User Says": answer
-  }})
+  }}
         
 #        For Gender
-        if(str(question).find('gender')): 
-           data = ({"stage"+ str(id) :{
+        if(str(question).find('gender')== True): 
+           data = {"stage"+ str(id) :{
     "Bot Says": [
       {
         "message": {
@@ -169,15 +173,16 @@ def answer_bot(request, id):
       }
     ],
     "User Says": answer
-  }})
-        if(str(question).find('first name')): 
+  }}
+        if(str(question).find('first name')==True): 
             first_name = answer
-        if(str(question).find('last name')): 
+        if(str(question).find('last name')==True): 
             last_name = answer
 #            for Age
-        if(str(question).find('age')): 
-            if(answer.isDigit()):
-                data = ({"stage"+ str(id) :{
+        if(str(question).find('age')==True): 
+            answer_string = str(answer)
+            if(answer_string.isdigit() == True):
+                data = {"stage"+ str(id) :{
     "Bot Says": [
       {
         "message": {
@@ -198,21 +203,21 @@ def answer_bot(request, id):
       }
     ],
     "User Says": answer
-  }})
+  }}
         
         
                 id = int(id)+1
                 full_name= first_name + last_name
                 
 #        Getting Each row of matrix
-        if(str(question).find('row of the matrix')): 
+        if(str(question).find('row of the matrix') == True): 
             row.append(answer.split(" "))
             row.append([map(int, i.split()) for i in row])
             
 #        For Calculating Transpose of matrix
-        if(str(question).find('transpose of the input matrix')): 
+        if(str(question).find('transpose of the input matrix') == True): 
             result  = numpy.transpose(row)
-            data = ({"stage"+ str(id) :
+            data = {"stage"+ str(id) :
     {"Bot Says": [
         {
             "message":{
@@ -236,10 +241,10 @@ def answer_bot(request, id):
         }
 
     ]}
-     })
+     }
         
 #    Write to json object
-    json.dump(data, bot_answer)
+    with open("result.json", "a") as fp:
+        json.dump(data,fp)
     page = str(int(id)+1)
     return redirect("/"+page)
-    
