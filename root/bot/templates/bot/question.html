@@ -1,0 +1,13 @@
+<html>
+    <body>
+<!--        <input type= name="question" value = {{text}}{{instruction}}/>-->
+        <form   action="{%url 'answer' id=id%}" method="post">
+            {% csrf_token %} 
+        {{text}} {{instruction}}
+        </br><input type="text" name="answer" id="answer"/>
+        <input type="submit" value="submit"/>
+<!--        <a href="{%url 'answer' id=id%}" onclick="document.getElementById('form-id').submit():">Answer</a>-->
+        </form>
+    
+    </body>
+</html>
